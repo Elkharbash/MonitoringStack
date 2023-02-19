@@ -1,0 +1,114 @@
+version: '2'
+name : Jaeger-tracing
+services:
+
+    jaeger-collector:
+      container_name: jaeger_collector
+      networks:
+        - tracing-network
+      image: jaegertracing/jaeger-collector
+      command:
+        - "--cassandra.keyspace=jaeger_v1_dc1"
+        - "--cassandra.servers=cassandra"
+        - "--collector.otlp.enabled=true"
+      environment:
+        - SAMPLING_CONFIG_TYPE=adaptive
+      ports:
+        - "14269:14269"
+        - "14268:14268"
+        - "14250:14250"
+        - "9411:9411"
+      restart: on-failure
+      depends_on:
+        - cassandra-schema
+
+    jaeger-query:
+      container_name: jaeger_query
+      networks:
+        - tracing-network
+      image: jaegertracing/jaeger-query
+      command: [
+        "--cassandra.keyspace=jaeger_v1_dc1",
+        "--cassandra.servers=cassandra"
+         ]
+      environment:
+        - METRICS_STORAGE_TYPE=prometheus
+        - PROMETHEUS_SERVER_URL=http://prometheus:9090
+      volumes:
+      - "./config/jaeger-ui.json:/etc/jaeger/jaeger-ui.json"
+      ports:
+        - "16686:16686"
+        - "16687:16687"
+      restart: on-failure
+      depends_on:
+        - cassandra-schema
+
+
+    cassandra:
+      container_name: cassandra
+      networks:
+        - tracing-network
+      image: cassandra
+      ports:
+        - "9042:9042"
+
+    cassandra-schema:
+      container_name: cassandra_schema
+      networks:
+        - tracing-network
+      image: jaegertracing/jaeger-cassandra-schema
+      depends_on:
+        - cassandra
+
+
+    otel_collector:
+      container_name: otel_collector
+      networks:
+        - tracing-network
+      image: otel/opentelemetry-collector-contrib:latest
+      volumes:
+        - "./config/otel-collector-config.yml:/etc/otelcol/otel-collector-config.yml"
+      command: --config /etc/otelcol/otel-collector-config.yml
+      ports:
+        - "4317:4317"
+        - "8889:8889"
+      depends_on:
+        - cassandra
+
+#    prometheus:
+#      container_name: prometheus
+#      networks:
+#        - tracing-network
+#      image: prom/prometheus:latest
+#      volumes:
+#        - "./config/prometheus.yml:/etc/prometheus/prometheus.yml"
+#      ports:
+#        - "9090:9090"
+#      depends_on:
+#        - cassandra
+
+
+    grafana:
+      container_name: grafana
+      networks:
+        - tracing-network
+      image: grafana/grafana:latest
+      volumes:
+        - ./config/grafana.ini:/etc/grafana/grafana.ini
+        - ./config/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yaml
+      environment:
+        - GF_AUTH_ANONYMOUS_ENABLED=false
+        - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+        - GF_AUTH_DISABLE_LOGIN_FORM=false
+      ports:
+        - "3000:3000"
+      depends_on:
+        - cassandra
+
+networks:
+  tracing-network:
+
+
+
+#  extra_hosts:
+#      host.docker.internal: host-gateway

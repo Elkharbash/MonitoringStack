@@ -1,0 +1,98 @@
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+scrape_configs:
+  - job_name: aggregated-trace-metrics
+    scheme: http
+    static_configs:
+      - targets: [ 'localhost:8889' ]
+        labels:
+          service: 'otel-collector'
+      - targets: [ 'localhost:14269' ]
+        labels:
+          service: 'jaeger-collector'
+      - targets: [ 'localhost:16687' ]
+        labels:
+          service: 'jaeger-query'
+      - targets: [ 'localhost:1424' ]
+        labels:
+          service: 'SMS_CHANNEL'
+      - targets: [ 'localhost:5000' ]
+        labels:
+          service: 'MOBILE_CHANNEL'
+      - targets: [ 'localhost:2020' ]
+        labels:
+          service: 'SYSTEM_CORE'
+
+#       - targets: ['jaeger-collector:14269','jaeger-query:16687',
+#            "host.docker.internal:4999",
+#            "host.docker.internal:4998",
+#            "host.docker.internal:5000",
+#            "host.docker.internal:5009",
+#            "host.docker.internal:5000"]
+
+
+#scrape_configs:
+#    - job_name: aggregated-trace-metrics
+#      static_configs:
+#          - targets: ['jaeger-collector:14269','jaeger-query:16687',
+#              "host.docker.internal:4999",
+#              "host.docker.internal:4998",
+#              "host.docker.internal:5000",
+#              "host.docker.internal:5009",
+#              "host.docker.internal:5000"]
+
+
+
+## my global config
+#global:
+#  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+#  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+#  # scrape_timeout is set to the global default (10s).
+#
+## Alertmanager configuration
+#alerting:
+#  alertmanagers:
+#    - static_configs:
+#        - targets:
+#          # - alertmanager:9093
+#
+## Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+#rule_files:
+#  # - "first_rules.yml"
+#  # - "second_rules.yml"
+#
+## A scrape configuration containing exactly one endpoint to scrape:
+## Here it's Prometheus itself.
+##scrape_configs:
+##  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+##  - job_name: "prometheus"
+##
+##    # metrics_path defaults to '/metrics'
+##    # scheme defaults to 'http'.
+##
+##    static_configs:
+##      - targets: ["localhost:9090"]
+##
+##
+#scrape_configs:
+#    - job_name: aggregated-trace-metrics
+#      scheme: http
+#      static_configs:
+#        - targets: [ 'localhost:14269' ]
+#          labels:
+#              service: 'jaeger-collector'
+#        - targets: [ 'localhost:16687' ]
+#          labels:
+#              service: 'jaeger-query'
+#        - targets: [ 'localhost:1424' ]
+#          labels:
+#              service: 'SMS_CHANNEL'
+#        - targets: [ 'localhost:5000' ]
+#          labels:
+#              service: 'MOBILE_CHANNEL'
+#        - targets: [ 'localhost:2020' ]
+#          labels:
+#              service: 'SYSTEM_CORE'
